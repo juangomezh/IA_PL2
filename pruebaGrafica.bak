@@ -1,0 +1,4 @@
+#lang racket
+(require graphics/graphics)
+(open-graphics)
+(open-viewport "widow" 400 400)

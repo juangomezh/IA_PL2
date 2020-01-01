@@ -1,4 +1,10 @@
 #lang Racket
+(require 2htdp/universe)
+(require 2htdp/image)
+(require (lib "graphics.ss" "graphics"))
+(open-graphics)
+
+(define ventana (open-viewport "TAB" 500 500))
 (define tableroInicial
   (list
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
@@ -28,17 +34,50 @@
     [else 'blanc]))
 
 (define (comprobarColor tablero pos)
-  (let* [(up   ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else pos])) pos))
-         (drup ((lambda (pos) (cond [(> pos 0)  (- pos 1)] [else pos])) up))
-         (dlup ((lambda (pos) (cond [(< pos 64) (+ pos 1)] [else pos])) up))
-         (dw   ((lambda (pos) (cond [(< pos 56) (+ pos 8)] [else pos])) pos))
-         (drdw ((lambda (pos) (cond [(> pos 0)  (- pos 1)] [else pos])) dw))
-         (dldw ((lambda (pos) (cond [(< pos 64) (+ pos 1)] [else pos])) dw))
-         (rgt  ((lambda (pos) (cond [(> pos 0)  (- pos 1)] [else pos])) pos))
-         (lft  ((lambda (pos) (cond [(> pos 64) (+ pos 1)] [else pos])) pos))] 
+  (let* [(tab tablero)
+         (up   ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else -1])) pos))
+         (drup ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) up))
+         (dlup ((lambda (pos) (cond [(< pos 0) -1] [(< pos 64) (+ pos 1)] [else -1])) up))
+         (dw   ((lambda (pos) (cond [(< pos 56) (+ pos 8)] [else -1])) pos))
+         (drdw ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) dw))
+         (dldw ((lambda (pos) (cond [(< pos 0) -1] [(< pos 64) (+ pos 1)] [else -1])) dw))
+         (rgt  ((lambda (pos) (cond [(> (remainder pos 8) 0)  (- pos 1)] [else -1])) pos))
+         (lft  ((lambda (pos) (cond [(< (remainder pos 8) 7) (+ pos 1)] [else -1])) pos))] 
+
     (cond
-      [(or (equal? (list-ref tablero up) (list-ref tablero dw)) (equal? (list-ref tablero rgt) (list-ref tablero lft))) (cambiarColor tablero pos)]
-      [else (list-ref tablero pos)])))
+     [(and (not (< up 0)) (not (< dw 0)) (not (< rgt 0)) (not (< lft 0)) (not (< drup 0)) (not (< drdw 0)) (not (< dlup 0)) (not (< dldw 0)))
+        (cond
+          [(and (equal? (list-ref tablero up) (list-ref tablero dw)) (not (equal? (list-ref tablero pos) 'libre))) 
+            (cambiarColor tab pos)]
+          [(and (equal? (list-ref tablero lft) (list-ref tablero rgt)) (not (equal? (list-ref tablero pos) 'libre)))
+            (cambiarColor tab pos)]
+          [(and (equal? (list-ref tablero drup) (list-ref tablero dldw)) (not (equal? (list-ref tablero pos) 'libre))) 
+            (cambiarColor tab pos)]
+          [(and (equal? (list-ref tablero dlup) (list-ref tablero drdw)) (not (equal? (list-ref tablero pos) 'libre))) 
+            (cambiarColor tab pos)]
+          [else (list-ref tablero pos)])]
+     [(and (not (< up 0)) (not (< dw 0)))
+      (cond
+          [(and (equal? (list-ref tablero up) (list-ref tablero dw)) (not (equal? (list-ref tablero pos) 'libre))) 
+            (cambiarColor tab pos)]
+          [else (list-ref tablero pos)])]
+     [(and (not (< drup 0)) (not (< dldw 0)))
+      (cond
+          [(and (equal? (list-ref tablero drup) (list-ref tablero dldw)) (not (equal? (list-ref tablero pos) 'libre))) 
+            (cambiarColor tab pos)]
+          [else (list-ref tablero pos)])]
+     [(and (not (< dlup 0)) (not (< drdw 0)))
+      (cond
+          [(and (equal? (list-ref tablero dlup) (list-ref tablero drdw)) (not (equal? (list-ref tablero pos) 'libre))) 
+            (cambiarColor tab pos)]
+          [else (list-ref tablero pos)])]
+     [(and (not (< rgt 0)) (not (< lft 0)))
+      (cond
+        [(and (equal? (list-ref tablero lft) (list-ref tablero rgt)) (not (equal? (list-ref tablero pos) 'libre)))
+            (cambiarColor tab pos)]
+          [else (list-ref tablero pos)])]
+       
+     [else (list-ref tablero pos)])))
 
 
 
@@ -49,17 +88,44 @@
 (define (realizarJugada tablero posiciones)
   (cond
     [(empty? posiciones) tablero]
+    [(< (car posiciones) 0) (realizarJugada tablero (cdr posiciones))]
     [else (realizarJugada (comprobarJugada tablero (car posiciones)) (cdr posiciones))]))
 
 (define (jugada tablero pos color)
-   (let* [(up   ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else pos])) pos))
-         (drup ((lambda (pos)  (cond [(> pos 0)  (- pos 1)] [else pos])) up))
-         (dlup ((lambda (pos)  (cond [(< pos 64) (+ pos 1)] [else pos])) up))
-         (dw   ((lambda (pos)  (cond [(< pos 56) (+ pos 8)] [else pos])) pos))
-         (drdw ((lambda (pos)  (cond [(> pos 0)  (- pos 1)] [else pos])) dw))
-         (dldw ((lambda (pos)  (cond [(< pos 64) (+ pos 1)] [else pos])) dw))
-         (rgt  ((lambda (pos)  (cond [(> pos 0)  (- pos 1)] [else pos])) pos))
-         (lft  ((lambda (pos)  (cond [(> pos 64) (+ pos 1)] [else pos])) pos))]
+   (let* [(up   ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else -1])) pos))
+         (drup ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) up))
+         (dlup ((lambda (pos) (cond [(< pos 0) -1] [(< pos 64) (+ pos 1)] [else -1])) up))
+         (dw   ((lambda (pos) (cond [(< pos 56) (+ pos 8)] [else -1])) pos))
+         (drdw ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) dw))
+         (dldw ((lambda (pos) (cond [(< pos 0) -1] [(< pos 64) (+ pos 1)] [else -1])) dw))
+         (rgt  ((lambda (pos) (cond [(> (remainder pos 8) 0)  (- pos 1)] [else -1])) pos))
+         (lft  ((lambda (pos) (cond [(< (remainder pos 8) 7) (+ pos 1)] [else -1])) pos))] 
     (realizarJugada (cambiarFicha tablero pos color) (list up drup dlup dw drdw dldw rgt lft))))
 
-(imprimirTablero (jugada tableroInicial 0 'blanc))
+(define (getColor tablero pos)
+  (cond
+    [(equal? (list-ref tablero pos) 'blanc) "white"]
+    [else "black"]))
+          
+(define (displayTablero tablero)
+  ((draw-solid-rectangle ventana)	 	 	 	 
+   (make-posn 50 50)	 	 	 	 
+   400	 	 	 	 
+   400	 	 	 	 
+   "brown")
+  (for ([i (in-range 100 450 50)]) 
+    ((draw-line ventana) (make-posn 50 i) (make-posn 450 i) "black"))
+  (for ([i (in-range 100 450 50)]) 
+    ((draw-line ventana) (make-posn i 50) (make-posn i 450) "black"))
+  (for ([i (in-range 0 64)])
+    (when (not (equal? (list-ref tablero i) 'libre))
+      ((draw-solid-ellipse ventana)
+       (let [(x (+ 60 (* 50 (remainder i 8))))
+             (y (+ 60 (* 50 (quotient i 8))))]
+         (make-posn x y))	 	 	 	 
+       30	 	 	 	 
+       30	 	 	 	 
+       (getColor tablero i)))))
+
+(displayTablero tableroInicial)
+(provide big-bang)
