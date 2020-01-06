@@ -86,7 +86,9 @@
          (dldw ((lambda (pos) (cond [(< pos 0) -1] [(< pos 63) (+ pos 1)] [else -1])) dw))
          (rgt  ((lambda (pos) (cond [(> (remainder pos 8) 0)  (- pos 1)] [else -1])) pos))
          (lft  ((lambda (pos) (cond [(< (remainder pos 8) 7) (+ pos 1)] [else -1])) pos))]
-    (and (comprobarAlrededor (cambiarFicha tablero pos color) (list up drup dlup dw drdw dldw rgt lft))
+    (and
+     (equal? (list-ref tablero pos) 'libre)
+     (comprobarAlrededor (cambiarFicha tablero pos color) (list up drup dlup dw drdw dldw rgt lft))
          (or
           (voltear? tablero pos color -1)
           (voltear? tablero pos color +1)
@@ -282,9 +284,11 @@
                            (set! tab jugadaCpu)]
                      [else (display "Fin del juego")]))]
                 [else (display "Fin del juego")])]
-        [else (display "Fin del juego")]))]
-    [else (display "movimiento no valido")]))
+        [else (display "Jugada erronea - Repita con otra de las posiciones indicadas")]))]
+    [else (display "movimiento no valido")])
+  (display (findLegalPos tab 'blanc))
+  (displayTablero tab))
                    
-
-
+(display "posiciones validas")
+(findLegalPos tab 'blanc)
 
