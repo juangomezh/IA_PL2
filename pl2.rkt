@@ -128,14 +128,15 @@
          (rgt  ((lambda (pos) (cond [(> (remainder pos 8) 0)  (- pos 1)] [else -1])) pos))
          (lft  ((lambda (pos) (cond [(< (remainder pos 8) 7) (+ pos 1)] [else -1])) pos))] 
     (and (comprobarAlrededor (cambiarFicha tablero pos color) (list up drup dlup dw drdw dldw rgt lft))
-         (voltear? tablero pos color -1)
-         (voltear? tablero pos color +1)
-         (voltear? tablero pos color -8)
-         (voltear? tablero pos color +8)
-         (voltear? tablero pos color -9)
-         (voltear? tablero pos color +9)
-         (voltear? tablero pos color -7)
-         (voltear? tablero pos color +7)
+         (or
+          (voltear? tablero pos color -1)
+          (voltear? tablero pos color +1)
+          (voltear? tablero pos color -8)
+          (voltear? tablero pos color +8)
+          (voltear? tablero pos color -9)
+          (voltear? tablero pos color +9)
+          (voltear? tablero pos color -7)
+          (voltear? tablero pos color +7))
          )))
 
 (define (getColor tablero pos)
