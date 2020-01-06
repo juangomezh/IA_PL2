@@ -5,7 +5,7 @@
 (open-graphics)
 
 (define ventana (open-viewport "TAB" 500 500))
-(define tableroInicial
+(define tab
   (list
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre  
@@ -267,11 +267,24 @@
        30	 	 	 	 
        (getColor tablero i)))))
 
+(define (jugar pos)
+  (cond
+    [(not (empty? (findLegalPos tab 'blanc)))
+    (let [(jugada (realizarJugada tab pos 'blanc))]
+      (cond
+        [(not (boolean? jugada))
+              (set! tab jugada)
+              (cond
+                [(not (empty? (findLegalPos tab 'negra)))
+                 (let [(jugadaCpu (realizarJugadaCpu tab (cdr (alphaB jugada 'negra -inf.0 +inf.0 5)) 'negra))]
+                   (cond
+                     [(not (boolean? jugadaCpu))
+                           (set! tab jugadaCpu)]
+                     [else (display "Fin del juego")]))]
+                [else (display "Fin del juego")])]
+        [else (display "Fin del juego")]))]
+    [else (display "movimiento no valido")]))
+                   
 
 
-(let* [(jugada (realizarJugada tableroInicial 50 'blanc))
-       (jugada2 (realizarJugadaCpu jugada (cdr (alphaB jugada 'negra -inf.0 +inf.0 5)) 'negra))
-       (jugada3 (realizarJugada jugada2 20 'blanc))
-       (jugada4 (realizarJugadaCpu jugada3 (cdr (alphaB jugada3 'negra -inf.0 +inf.0 5)) 'negra))]
-  (displayTablero jugada4))
 
