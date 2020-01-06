@@ -193,21 +193,34 @@
     (if (> num1 num2) num1 num2))
     (foldl max (first list) (rest list)))
 
-(define (stepm tablero color)
-  (let* [(listaJugadas (posibleJugador tablero color))
-         (contadores (for/list [(i listaJugadas)]
-                       (heuristica i color)))
-         (maximo (max-list contadores))]
-    (list-ref listaJugadas (index-of contadores maximo))))
+(define (maxAlpha list valor) 
+    (define (max num1 num2)
+      (if (> num1 num2) num1 num2))
+    (foldl max valor list))
 
-(define (stepminimax tablero color)
-  (posibleJugador tablero color))
-
-(define (ganador? tablero color)
+(define (alphaB tablero color alpha beta frontera)
   (cond
-    [(> (heuristica tablero color) 0) 1]
-    [(< (heuristica tablero color) 0) -1]
-    [else 0]))
+    [(= frontera 0)
+     (cons (heuristica tablero color) -1)]
+    [else
+     (let
+         [(listaPosiciones (findLegalPos tablero color))
+          (listaJugadas (posibleJugador tablero color))]
+       (cond
+         [(empty? listaJugadas)
+          (let
+              [(listaJugadasSiguientes (posibleJugador tablero (cambiarColor color)))]
+            (cond
+              [(empty? listaJugadasSiguientes) (cons -1 -1)]
+              [else
+               (cons (- (car (alphaB tablero (cambiarColor color) (- beta) (- alpha) (- frontera 1))) -1))]))]
+         [else
+          (let* [(contadores (for/list [(i listaJugadas)] #:break (>= alpha beta)
+                              (let [(valor (- (car (alphaB tablero (cambiarColor color) (- beta) (- alpha) (- frontera 1))) -1))]
+                                (when (> valor alpha) (set! alpha valor)) valor)))
+                 (maximo (max-list contadores))
+                 (pos (index-of contadores maximo))]
+            (cons maximo (list-ref listaPosiciones pos)))]))]))
 
 (define (minimax tablero color frontera)
    (cond
@@ -257,8 +270,8 @@
 
 
 (let* [(jugada (realizarJugada tableroInicial 50 'blanc))
-       (jugada2 (realizarJugadaCpu jugada (cdr (minimax jugada 'negra 5)) 'negra))
+       (jugada2 (realizarJugadaCpu jugada (cdr (alphaB jugada 'negra -inf.0 +inf.0 5)) 'negra))
        (jugada3 (realizarJugada jugada2 20 'blanc))
-       (jugada4 (realizarJugadaCpu jugada3 (cdr (minimax jugada3 'negra 5)) 'negra))]
+       (jugada4 (realizarJugadaCpu jugada3 (cdr (alphaB jugada3 'negra -inf.0 +inf.0 5)) 'negra))]
   (displayTablero jugada4))
 
