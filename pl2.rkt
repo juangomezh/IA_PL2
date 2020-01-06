@@ -28,9 +28,9 @@
     [else #f]
     ))
 
-(define (cambiarColor tablero pos)
+(define (cambiarColor color)
   (cond
-    [(equal? (list-ref tablero pos) 'blanc) 'negra]
+    [(equal? color 'blanc) 'negra]
     [else 'blanc]))
 
 (define (comprobarColor tablero pos)
@@ -84,14 +84,41 @@
 (define (comprobarJugada tablero pos)
   (list-set tablero pos (comprobarColor tablero pos)))
 
-
-(define (realizarJugada tablero posiciones)
+(define (flip-piece tablero pos color step)
   (cond
-    [(empty? posiciones) tablero]
-    [(< (car posiciones) 0) (realizarJugada tablero (cdr posiciones))]
-    [else (realizarJugada (comprobarJugada tablero (car posiciones)) (cdr posiciones))]))
+   [(or (equal? step 1) (equal? step -1))
+    (cond
+      [(outOfRangeFila pos)
+       (cond
+         [(equal? (list-ref tablero pos) (cambiarClor color)) pos]
+         [else #f])]
+      [(equal? (list-ref tablero pos) color) pos]
+      [(equal? (list-ref tablero pos) (cambiarClor color)) (flip-piece tablero (+ pos step) color step)]
+      [else #f])
+    [else
+     (cond
+      [(outOfRange pos) #f]
+      [(equal? (list-ref tablero pos) color) pos]
+      [(equal? (list-ref tablero pos) (cambiarClor color)) (flip-piece tablero (+ pos step) color step)]
+      [else #f])]]))
 
-(define (jugada tablero pos color)
+(define (outOfRange pos)
+  (or (> pos 64) (< pos 0)))
+
+(define (outOfRangeFila pos)
+  (equal (remainder pos 8) 0))
+
+(define (voltear? tablero pos color step)
+  (and
+   (equal? (list-ref tablero (+ pos step)) (cambiarColor color))
+   (flip-piece tablero pos 'blanc step)))
+
+(define (comprobarAlrededor tablero posiciones)
+  (for/or ([i posiciones]
+           #:when (> i 0))
+    (not (equal? (list-ref tablero i) 'libre))))
+
+(define (movimientoLegal tablero pos color)
    (let* [(up   ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else -1])) pos))
          (drup ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) up))
          (dlup ((lambda (pos) (cond [(< pos 0) -1] [(< pos 64) (+ pos 1)] [else -1])) up))
@@ -100,7 +127,16 @@
          (dldw ((lambda (pos) (cond [(< pos 0) -1] [(< pos 64) (+ pos 1)] [else -1])) dw))
          (rgt  ((lambda (pos) (cond [(> (remainder pos 8) 0)  (- pos 1)] [else -1])) pos))
          (lft  ((lambda (pos) (cond [(< (remainder pos 8) 7) (+ pos 1)] [else -1])) pos))] 
-    (realizarJugada (cambiarFicha tablero pos color) (list up drup dlup dw drdw dldw rgt lft))))
+    (and (comprobarAlrededor (cambiarFicha tablero pos color) (list up drup dlup dw drdw dldw rgt lft))
+         (voltear? tablero pos color -1)
+         (voltear? tablero pos color +1)
+         (voltear? tablero pos color -8)
+         (voltear? tablero pos color +8)
+         (voltear? tablero pos color -9)
+         (voltear? tablero pos color +9)
+         (voltear? tablero pos color -7)
+         (voltear? tablero pos color +7)
+         )))
 
 (define (getColor tablero pos)
   (cond
