@@ -16,6 +16,11 @@
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre))
 
+(define fila1 '(0 1 2 3 4 5 6 7))
+(define columna1 '(0 8 16 24 32 40 48 56))
+(define columna2 '(7 15 23 31 39 47 55 62))                   
+(define fila2 '(56 57 58 59 60 61 62 63))
+
 (define (imprimirTablero tablero)
   (for ([i (in-range 0 64)])
     (cond
@@ -34,12 +39,6 @@
     [else 'blanc]))
 
 
-(define (outOfRange pos)
-  (or (> pos 63) (< pos 0)))
-
-(define (outOfRangeFila pos)
-  (equal? (remainder pos 8) 0))
-
 (define (voltear? tablero pos color step)
   (cond
     [(not (outOfRange (+ pos step)))
@@ -49,13 +48,24 @@
     [else #f]))
 
 (define (voltear tablero pos color step)
-  (for/list ([i (in-range pos (flip-piece tablero (+ pos step) color step) step)])
+  (for/list
+      ([i (in-range (+ pos step) (flip-piece tablero (+ pos step) color step) step)])
     i))
+
+(define (outOfRange pos)
+  (or (> pos 63) (< pos 0)))
+
+(define (outOfRangeFila pos)
+  (equal? (remainder pos 8) 0))
+
+
 
 (define (flip-piece tablero pos color step)
   (cond
    [(or (equal? step 1) (equal? step -1))
     (cond
+     [(outOfRange pos) #f]
+     ;;Condicion de member de posicion extaña
      [(outOfRangeFila pos)
        (cond
          [(equal? (list-ref tablero pos) color) pos]
@@ -63,9 +73,24 @@
       [(equal? (list-ref tablero pos) color) pos]
       [(equal? (list-ref tablero pos) (cambiarColor color)) (flip-piece tablero (+ pos step) color step)]
       [else #f])]
+   [(or (equal? step 8) (equal? step -8))
+    (cond
+      [(outOfRange pos) #f]
+      ;;Condicion de member de posicion extaña
+      [(equal? (list-ref tablero pos) color) pos]
+      [(equal? (list-ref tablero pos) (cambiarColor color)) (flip-piece tablero (+ pos step) color step)]
+      [else #f])]
+   [(or (equal? step 9) (equal? step -9))
+    (cond
+     [(outOfRange pos) #f]
+     ;;Condicion de member de posicion extaña
+      [(equal? (list-ref tablero pos) color) pos]
+      [(equal? (list-ref tablero pos) (cambiarColor color)) (flip-piece tablero (+ pos step) color step)]
+      [else #f])]
     [else
      (cond
       [(outOfRange pos) #f]
+      ;;Condicion de member de posicion extaña
       [(equal? (list-ref tablero pos) color) pos]
       [(equal? (list-ref tablero pos) (cambiarColor color)) (flip-piece tablero (+ pos step) color step)]
       [else #f])]))
@@ -78,7 +103,7 @@
 
 (define (movimientoLegal tablero pos color)
   
-   (let* [(up   ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else -1])) pos))
+   (let* [(up  ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else -1])) pos))
          (drup ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) up))
          (dlup ((lambda (pos) (cond [(< pos 0) -1] [(< pos 63) (+ pos 1)] [else -1])) up))
          (dw   ((lambda (pos) (cond [(< pos 56) (+ pos 8)] [else -1])) pos))
@@ -110,7 +135,7 @@
     
 
 (define (cambiarFichas tablero pos color)
-  (set! tablero (list-set tablero pos (cambiarColor color)))
+  (set! tablero (list-set tablero pos color))
   (when (voltear? tablero pos color -1)
     (let ([fichas (voltear tablero pos color -1)])
       (set! tablero (cambiarColorFicha tablero fichas))))
@@ -158,6 +183,7 @@
 
 (define (realizarJugadaCpu tablero pos color)
   (cambiarFichas tablero pos color))
+
 ;;__________________________________________IA________________________________________________________;;
 
 (define (findLegalPos tablero color)
@@ -215,7 +241,7 @@
             (cond
               [(empty? listaJugadasSiguientes) (cons -1 -1)]
               [else
-               (cons (- (car (alphaB tablero (cambiarColor color) (- beta) (- alpha) (- frontera 1))) -1))]))]
+               (cons (- (car (alphaB tablero (cambiarColor color) (- beta) (- alpha) (- frontera 1)))) -1)]))]
          [else
           (let* [(contadores (for/list [(i listaJugadas)] #:break (>= alpha beta)
                               (let [(valor (- (car (alphaB tablero (cambiarColor color) (- beta) (- alpha) (- frontera 1))) -1))]
@@ -268,6 +294,25 @@
        30	 	 	 	 
        30	 	 	 	 
        (getColor tablero i)))))
+(define (jugarIA)
+  (cond
+    [(not (empty? (findLegalPos tab 'negra)))
+     (let [(jugadaCpu (realizarJugadaCpu tab (cdr (alphaB tab 'negra -inf.0 +inf.0 5)) 'negra))]
+       (cond
+         [(not (boolean? jugadaCpu))
+          (set! tab jugadaCpu)]
+         [else (display "Fin del juego")]))]
+    [else (display "Fin del juego")])
+  (seguir (findLegalPos tab 'blanc))
+  )
+
+(define (seguir boolean)
+  (cond
+    [(not boolean)
+     (jugarIA)]
+    [(not (findLegalPos tab 'negra)) (display "Fin del juego")]
+    [else ""])
+    )
 
 (define (jugar pos)
   (cond
@@ -276,14 +321,9 @@
       (cond
         [(not (boolean? jugada))
               (set! tab jugada)
-              (cond
-                [(not (empty? (findLegalPos tab 'negra)))
-                 (let [(jugadaCpu (realizarJugadaCpu tab (cdr (alphaB jugada 'negra -inf.0 +inf.0 5)) 'negra))]
-                   (cond
-                     [(not (boolean? jugadaCpu))
-                           (set! tab jugadaCpu)]
-                     [else (display "Fin del juego")]))]
-                [else (display "Fin del juego")])]
+              (displayTablero tab)
+              (sleep 1)
+              (jugarIA)]
         [else (display "Jugada erronea - Repita con otra de las posiciones indicadas")]))]
     [else (display "movimiento no valido")])
   (display (findLegalPos tab 'blanc))
