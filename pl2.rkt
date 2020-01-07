@@ -704,8 +704,8 @@
      (partida (final? tab 'blanc))]
     [else
      (cond
-       [(> (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 350 30) "PERDISTE " "black")]
-       [(< (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANASTE " "black")]
+       [(> (contarFichas tab 'blanco) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "PERDISTE " "black")]
+       [(< (contarFichas tab 'blanco) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANASTE " "black")]
        [else ((draw-string ventana) (make-posn 350 30) "EMPATE " "black")])]))
 
 (define (dibujarPosibles lista posx)
