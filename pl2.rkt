@@ -218,8 +218,9 @@
   (or
    (for/and ([i (in-range 0 64)])
     (not (equal? (list-ref tablero i) 'libre)))
+   (and 
    (empty? (findLegalPos tablero color))
-   (empty? (findLegalPos tablero (cambiarColor color)))))
+   (empty? (findLegalPos tablero (cambiarColor color))))))
 
 
 (define (posibleJugador tablero color)
@@ -297,6 +298,7 @@
              (set! tab jugadaCpu)]
             [else (display "No puedo seguir...")]))]
        [else (display "No puedo seguir...")])
+     (sleep 0.75)
      (displayTablero tab)
      (seguir (findLegalPos tab 'blanc))
      ]
@@ -310,8 +312,8 @@
              (set! tab jugadaCpu)]
             [else (display "No puedo seguir...")]))]
        [else (display "No puedo seguir...")])
+     (sleep 0.75)
      (displayTablero tab)
-     
      (seguir (findLegalPos tab 'blanc))]
     ))
 
@@ -336,7 +338,7 @@
                (make-posn 350 450)	150 50 "white")
               ((draw-string ventana) (make-posn 400 480) "MI TURNO" "black")
               (jugarIA)]
-        [else ((draw-string ventana) (make-posn 180 30) "Jugada erronea - Repita con otra de las posiciones indicadas" "black")]))]
+        [else ((draw-string ventana) (make-posn 180 30) "Jugada erronea - Repita con otra de las posiciones" "black")]))]
     [else ((draw-string ventana) (make-posn 200 30) "FIN DEL JUEGO " "black")])
   (display "\n")
   ((draw-solid-rectangle ventana)	 	 	 	 
@@ -705,8 +707,8 @@
      (partida (final? tab 'blanc))]
     [else
      (cond
-       [(> (contarFichas tab 'blanco) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "PERDISTE " "black")]
-       [(< (contarFichas tab 'blanco) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANASTE " "black")]
+       [(< (contarFichas tab 'blanc) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "PERDISTE " "black")]
+       [(> (contarFichas tab 'blanc) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANASTE " "black")]
        [else ((draw-string ventana) (make-posn 350 30) "EMPATE " "black")])]))
 
 (define (dibujarPosibles lista posx)
