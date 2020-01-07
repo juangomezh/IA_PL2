@@ -14,10 +14,10 @@
   (list
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre  
-   'LIBRE 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
+   'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'blanc 'negra 'libre 'libre 'libre 
    'libre 'libre 'libre 'negra 'blanc 'libre 'libre 'libre  
-   'libre 'libre 'libre 'LIBRE 'libre 'libre 'libre 'libre 
+   'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre))
 
