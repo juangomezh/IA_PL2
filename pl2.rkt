@@ -310,7 +310,6 @@
              (set! tab jugadaCpu)]
             [else (display "No puedo seguir...")]))]
        [else (display "No puedo seguir...")])
-     (sleep 1)
      (displayTablero tab)
      
      (seguir (findLegalPos tab 'blanc))]
@@ -333,13 +332,18 @@
         [(not (boolean? jugada))
               (set! tab jugada)
               (displayTablero tab)
+              ((draw-solid-rectangle ventana)	 	 	 	 
+               (make-posn 350 450)	150 50 "white")
+              ((draw-string ventana) (make-posn 400 480) "MI TURNO" "black")
               (sleep 1)
               (jugarIA)]
         [else ((draw-string ventana) (make-posn 200 30) "Jugada erronea - Repita con otra de las posiciones indicadas" "black")]))]
     [else ((draw-string ventana) (make-posn 200 30) "FIN DEL JUEGO " "black")])
   (display "\n")
-   ((draw-solid-rectangle ventana)	 	 	 	 
-      (make-posn 0 450)	500 50 "white")
+  ((draw-solid-rectangle ventana)	 	 	 	 
+   (make-posn 0 450)	500 50 "white")
+  
+  ((draw-string ventana) (make-posn 400 480) "TU TURNO " "black")
   ((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
   (dibujarPosibles (findLegalPos tab 'blanc) 150))
                    
@@ -702,9 +706,9 @@
      (partida (final? tab 'blanc))]
     [else
      (cond
-       [(> (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 270 30) "PERDISTE " "black")]
-       [(< (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 270 30) "GANASTE " "black")]
-       [else (display "\nEMPATE")])]))
+       [(> (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 350 30) "PERDISTE " "black")]
+       [(< (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANASTE " "black")]
+       [else ((draw-string ventana) (make-posn 350 30) "EMPATE " "black")])]))
 
 (define (dibujarPosibles lista posx)
   (cond
