@@ -36,7 +36,8 @@
 (define (cambiarColor color)
   (cond
     [(equal? color 'blanc) 'negra]
-    [else 'blanc]))
+    [(equal? color 'negra) 'blanc]
+    [else 'libre]))
 
 
 (define (voltear? tablero pos color step)
@@ -48,16 +49,22 @@
     [else #f]))
 
 (define (voltear tablero pos color step)
-  (for/list
-      ([i (in-range (+ pos step) (flip-piece tablero (+ pos step) color step) step)])
+  (for/list ([i (in-range (+ pos step) (flip-piece tablero (+ pos step) color step) step)])
     i))
 
 (define (outOfRange pos)
   (or (> pos 63) (< pos 0)))
 
-(define (outOfRangeFila pos)
-  (equal? (remainder pos 8) 0))
 
+(define (outOfRangeFila pos)
+  (or (not (boolean? (member pos columna1))) (not (boolean? (member pos columna2)))))
+
+(define (outOfRangeColumna pos)
+  (or (not (boolean? (member pos fila1))) (not (boolean? (member pos fila2)))))
+
+(define (outOfRangeDiagonal pos)
+  (or (not (boolean? (member pos fila1))) (not (boolean? (member pos fila2)))
+      (not (boolean? (member pos columna1))) (not (boolean? (member pos columna2)))))
 
 
 (define (flip-piece tablero pos color step)
@@ -65,7 +72,6 @@
    [(or (equal? step 1) (equal? step -1))
     (cond
      [(outOfRange pos) #f]
-     ;;Condicion de member de posicion extaña
      [(outOfRangeFila pos)
        (cond
          [(equal? (list-ref tablero pos) color) pos]
@@ -76,21 +82,20 @@
    [(or (equal? step 8) (equal? step -8))
     (cond
       [(outOfRange pos) #f]
-      ;;Condicion de member de posicion extaña
-      [(equal? (list-ref tablero pos) color) pos]
-      [(equal? (list-ref tablero pos) (cambiarColor color)) (flip-piece tablero (+ pos step) color step)]
-      [else #f])]
-   [(or (equal? step 9) (equal? step -9))
-    (cond
-     [(outOfRange pos) #f]
-     ;;Condicion de member de posicion extaña
+      [(outOfRangeColumna pos)
+       (cond
+         [(equal? (list-ref tablero pos) color) pos]
+         [else #f])]
       [(equal? (list-ref tablero pos) color) pos]
       [(equal? (list-ref tablero pos) (cambiarColor color)) (flip-piece tablero (+ pos step) color step)]
       [else #f])]
     [else
      (cond
       [(outOfRange pos) #f]
-      ;;Condicion de member de posicion extaña
+      [(outOfRangeDiagonal pos)
+       (cond
+         [(equal? (list-ref tablero pos) color) pos]
+         [else #f])]
       [(equal? (list-ref tablero pos) color) pos]
       [(equal? (list-ref tablero pos) (cambiarColor color)) (flip-piece tablero (+ pos step) color step)]
       [else #f])]))
@@ -174,7 +179,8 @@
 (define (getColor tablero pos)
   (cond
     [(equal? (list-ref tablero pos) 'blanc) "white"]
-    [else "black"]))
+    [(equal? (list-ref tablero pos) 'negra) "black"]
+    [else "brown"]))
 
 (define (realizarJugada tablero pos color)
   (cond
@@ -294,6 +300,7 @@
        30	 	 	 	 
        30	 	 	 	 
        (getColor tablero i)))))
+
 (define (jugarIA)
   (cond
     [(not (empty? (findLegalPos tab 'negra)))
@@ -301,16 +308,19 @@
        (cond
          [(not (boolean? jugadaCpu))
           (set! tab jugadaCpu)]
-         [else (display "Fin del juego")]))]
-    [else (display "Fin del juego")])
+         [else (display "No puedo seguir...")]))]
+    [else (display "No puedo seguir...")])
+  (sleep 2)
+  (displayTablero tab)
   (seguir (findLegalPos tab 'blanc))
   )
 
-(define (seguir boolean)
+(define (seguir lista)
   (cond
-    [(not boolean)
+    [(empty? lista) (display "\nTu no puedes, sigo yo")
      (jugarIA)]
-    [(not (findLegalPos tab 'negra)) (display "Fin del juego")]
+    [(empty? (findLegalPos tab 'negra)) (display "Continua tu...\n")]
+    [(and (empty? lista) (empty? (findLegalPos tab 'negra))) (display "\nFin del juego.")]
     [else ""])
     )
 
@@ -326,8 +336,8 @@
               (jugarIA)]
         [else (display "Jugada erronea - Repita con otra de las posiciones indicadas")]))]
     [else (display "movimiento no valido")])
-  (display (findLegalPos tab 'blanc))
-  (displayTablero tab))
+  (display "\n")
+  (display (findLegalPos tab 'blanc)))
                    
 (display "posiciones validas")
 (findLegalPos tab 'blanc)
