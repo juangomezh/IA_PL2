@@ -1,10 +1,15 @@
 #lang Racket
 (require 2htdp/universe)
 (require 2htdp/image)
+(require graphics/graphics)
 (require (lib "graphics.ss" "graphics"))
 (open-graphics)
 
-(define ventana (open-viewport "TAB" 500 500))
+(define opcion 0)
+
+(define (elegirOpcion op)
+  (set! opcion op))
+
 (define tab
   (list
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
@@ -38,7 +43,6 @@
     [(equal? color 'blanc) 'negra]
     [(equal? color 'negra) 'blanc]
     [else 'libre]))
-
 
 (define (voltear? tablero pos color step)
   (cond
@@ -271,17 +275,451 @@
             (cond
               [(empty? listaJugadasSiguientes) (cons -1 -1)]
               [else
-               (cons (- (car (minimax tablero (cambiarColor color) (- frontera 1))) -1))]))]
+               (cons (- (car (minimax tablero (cambiarColor color) (- frontera 1)))) -1)]))]
          [else
           (let* [(contadores (for/list [(i listaJugadas)]
                               (- (car (minimax i (cambiarColor color) (- frontera 1))) 0)))
                  (maximo (max-list contadores))
                  (pos (index-of contadores maximo))]
             (cons maximo (list-ref listaPosiciones pos)))]))]))
-            
-          
+           
+
+(define (jugarIA)
+  (cond
+    [(equal? opcion 0)
+     (cond
+       [(final? tab 'negra) (display "Fin del juego")]
+       [(not (empty? (findLegalPos tab 'negra)))
+        (let [(jugadaCpu (realizarJugadaCpu tab (cdr (alphaB tab 'negra -inf.0 +inf.0 5)) 'negra))]
+          (cond
+            [(not (boolean? jugadaCpu))
+             (set! tab jugadaCpu)]
+            [else (display "No puedo seguir...")]))]
+       [else (display "No puedo seguir...")])
+     (sleep 1)
+     (displayTablero tab)
+     (seguir (findLegalPos tab 'blanc))
+     ]
+    [else
+     (cond
+       [(final? tab 'negra) (display "Fin del juego")]
+       [(not (empty? (findLegalPos tab 'negra)))
+        (let [(jugadaCpu (realizarJugadaCpu tab (cdr (minimax tab 'negra 5)) 'negra))]
+          (cond
+            [(not (boolean? jugadaCpu))
+             (set! tab jugadaCpu)]
+            [else (display "No puedo seguir...")]))]
+       [else (display "No puedo seguir...")])
+     (sleep 1)
+     (displayTablero tab)
+     
+     (seguir (findLegalPos tab 'blanc))]
+    ))
+
+(define (seguir lista)
+  (cond
+    [(and (empty? lista) (empty? (findLegalPos tab 'negra))) ((draw-string ventana) (make-posn 200 30) "FIN DEL JUEGO " "black")]
+    [(empty? (findLegalPos tab 'negra)) ((draw-string ventana) (make-posn 200 30) "Continua tu..." "black")]
+    [(empty? lista) ((draw-string ventana) (make-posn 200 30) "Tu no puedes, sigo yo" "black")
+                    (jugarIA)]
+    [else ""])
+    )
+
+(define (jugar pos)
+  (cond
+    [(not (empty? (findLegalPos tab 'blanc)))
+    (let [(jugada (realizarJugada tab pos 'blanc))]
+      (cond
+        [(not (boolean? jugada))
+              (set! tab jugada)
+              (displayTablero tab)
+              (sleep 1)
+              (jugarIA)]
+        [else ((draw-string ventana) (make-posn 200 30) "Jugada erronea - Repita con otra de las posiciones indicadas" "black")]))]
+    [else ((draw-string ventana) (make-posn 200 30) "FIN DEL JUEGO " "black")])
+  (display "\n")
+   ((draw-solid-rectangle ventana)	 	 	 	 
+      (make-posn 0 450)	500 50 "white")
+  ((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
+  (dibujarPosibles (findLegalPos tab 'blanc) 150))
+                   
+
+
+
+
+
+
+;;----------------------------------------------------------------Interzaf---------------------------------------------------------------;;
+
+
+(define click_inicial null)
+
+(define (draw mouse)
+  (cond
+
+;-----------------------------------------------------------------------Dibujar Casillas A------------------------------------------------------------------------------------------------------------------------    
+    ;Casilla a1
     
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 0)]
+
+         ;Casilla a2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 100 )(<= ( posn-x(mouse-click-posn mouse)) 150 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 1)]
+
+        ;Casilla a3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 2)]
+     
+      ;Casilla a4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 3)]
+
+        ;Casilla a5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 4)]
+
+        ;Casilla a6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 5)]
+
+     
+      ;Casilla a7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 6)]
+
+        ;Casilla a8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 50 )(<= ( posn-y(mouse-click-posn mouse)) 100 ))
+      (jugar 7)]
+;------------------------------------------------------------------------------Dibujar Casillas B--------------------------------------------------------------------------------------------------------------
+      ;Casilla b1
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 8)]
+
+         ;Casilla b2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 100 )(<= ( posn-x(mouse-click-posn mouse)) 150 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 9)]
+
+        ;Casilla b3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 10)]
+     
+      ;Casilla b4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 11)]
+
+        ;Casilla b5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 12)]
+
+        ;Casilla b6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 13)]
+
+     
+      ;Casilla b7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 14)]
+
+        ;Casilla b8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 100 )(<= ( posn-y(mouse-click-posn mouse)) 150 ))
+      (jugar 15)]
+
+     ;------------------------------------------------------------------------------Dibujar Casillas C--------------------------------------------------------------------------------------------------------------
+      ;Casilla c1
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 16)]
+
+         ;Casilla c2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 100 )(<= ( posn-x(mouse-click-posn mouse)) 150 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 17)]
+
+        ;Casilla c3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 18)]
+     
+      ;Casilla c4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 19)]
+
+        ;Casilla c5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 20)]
+
+        ;Casilla c6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 21)]
+
+     
+      ;Casilla c7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 22)]
+
+        ;Casilla c8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 150 )(<= ( posn-y(mouse-click-posn mouse)) 200 ))
+      (jugar 23)]
+
+  ;------------------------------------------------------------------------------Dibujar Casillas D--------------------------------------------------------------------------------------------------------------
+      ;Casilla d1
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 24)]
+
+         ;Casilla d2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 100 )(<= ( posn-x(mouse-click-posn mouse)) 150 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 25)]
+
+        ;Casilla d3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 26)]
+     
+      ;Casilla d4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 27)]
+
+        ;Casilla d5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 28)]
+
+        ;Casilla d6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 29)]
+
+     
+      ;Casilla d7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 30)]
+
+        ;Casilla d8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 200 )(<= ( posn-y(mouse-click-posn mouse)) 250 ))
+      (jugar 31)]
+
+ ;------------------------------------------------------------------------------Dibujar Casillas E--------------------------------------------------------------------------------------------------------------
+      ;Casilla e1
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 32)]
+
+         ;Casilla e2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 100 )(<= ( posn-x(mouse-click-posn mouse)) 150) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 33)]
+
+        ;Casilla e3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 34)]
+     
+      ;Casilla e4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 35)]
+
+        ;Casilla e5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 36)]
+
+        ;Casilla e6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 37)]
+
+     
+      ;Casilla e7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 38)]
+
+        ;Casilla e8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 250 )(<= ( posn-y(mouse-click-posn mouse)) 300 ))
+      (jugar 39)]
+
+  ;------------------------------------------------------------------------------Dibujar Casillas F--------------------------------------------------------------------------------------------------------------
+      ;Casilla f1
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 40)]
+
+         ;Casilla f2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 100 )(<= ( posn-x(mouse-click-posn mouse)) 150 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 41)]
+
+        ;Casilla f3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 42)]
+     
+      ;Casilla e4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 43)]
+
+        ;Casilla f5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 44)]
+
+        ;Casilla f6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 45)]
+
+     
+      ;Casilla f7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 46)]
+
+        ;Casilla f8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 300 )(<= ( posn-y(mouse-click-posn mouse)) 350 ))
+      (jugar 47)]
+
+  ;------------------------------------------------------------------------------Dibujar Casillas G--------------------------------------------------------------------------------------------------------------
+      ;Casilla G1
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 48)]
+
+         ;Casilla g2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 100 )(<= ( posn-x(mouse-click-posn mouse)) 150 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 49)]
+
+        ;Casilla g3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 50)]
+     
+      ;Casilla g4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 51)]
+
+        ;Casilla g5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 52)]
+
+        ;Casilla g6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 53)]
+
+     
+      ;Casilla g7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 54)]
+
+        ;Casilla g8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 350 )(<= ( posn-y(mouse-click-posn mouse)) 400 ))
+      (jugar 55)]
+
+  ;------------------------------------------------------------------------------Dibujar Casillas H--------------------------------------------------------------------------------------------------------------
+;Casilla h1
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 50 )(<= ( posn-x(mouse-click-posn mouse)) 100 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 56)]
+
+         ;Casilla h2
+    
+     [(and(>= (posn-x(mouse-click-posn mouse))  100 )(<= ( posn-x(mouse-click-posn mouse)) 150 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 57)]
+
+        ;Casilla g3
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 150 )(<= ( posn-x(mouse-click-posn mouse)) 200 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 58)]
+     
+      ;Casilla g4
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 200 )(<= ( posn-x(mouse-click-posn mouse)) 250 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 59)]
+
+        ;Casilla h5
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 250 )(<= ( posn-x(mouse-click-posn mouse)) 300 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 60)]
+
+        ;Casilla h6
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 300 )(<= ( posn-x(mouse-click-posn mouse)) 350 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 61)]
+     
+      ;Casilla h7
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 350 )(<= ( posn-x(mouse-click-posn mouse)) 400 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 62)]
+
+        ;Casilla h8
+    
+     [(and(>= (posn-x(mouse-click-posn mouse)) 400 )(<= ( posn-x(mouse-click-posn mouse)) 450 ) (>= ( posn-y(mouse-click-posn mouse)) 400 )(<= ( posn-y(mouse-click-posn mouse)) 450 ))
+      (jugar 63)]
+;else     
+[else 0]
+  ))
+
+(define (partida final)
+  (cond
+    [(not final)
+     (set! click_inicial (get-mouse-click ventana))
+     (draw click_inicial)
+     (partida (final? tab 'blanc))]
+    [else
+     (cond
+       [(> (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 270 30) "PERDISTE " "black")]
+       [(< (heuristica tab 'blanco) (heuristica tab 'negra)) ((draw-string ventana) (make-posn 270 30) "GANASTE " "black")]
+       [else (display "\nEMPATE")])]))
+
+(define (dibujarPosibles lista posx)
+  (cond
+    [(empty? lista) (display "")]
+    [else
+     ((draw-string ventana) (make-posn posx 480) (number->string (car lista)) "black")
+     (dibujarPosibles (cdr lista) (+ posx 20))]))
+   
 (define (displayTablero tablero)
+  ((draw-solid-rectangle ventana)	 	 	 	 
+   (make-posn 0 0)	500 50 "white")
+  ((draw-string ventana) (make-posn 10 30) "Blancas: " "black")
+  ((draw-string ventana) (make-posn 65 30) (number->string (contarFichas tab 'blanc)) "black")
+  ((draw-string ventana) (make-posn 90 30) "Negras: " "black")
+  ((draw-string ventana) (make-posn 145 30) (number->string (contarFichas tab 'negra)) "black")
   ((draw-solid-rectangle ventana)	 	 	 	 
    (make-posn 50 50)	 	 	 	 
    400	 	 	 	 
@@ -301,44 +739,15 @@
        30	 	 	 	 
        (getColor tablero i)))))
 
-(define (jugarIA)
-  (cond
-    [(not (empty? (findLegalPos tab 'negra)))
-     (let [(jugadaCpu (realizarJugadaCpu tab (cdr (alphaB tab 'negra -inf.0 +inf.0 5)) 'negra))]
-       (cond
-         [(not (boolean? jugadaCpu))
-          (set! tab jugadaCpu)]
-         [else (display "No puedo seguir...")]))]
-    [else (display "No puedo seguir...")])
-  (sleep 2)
-  (displayTablero tab)
-  (seguir (findLegalPos tab 'blanc))
-  )
-
-(define (seguir lista)
-  (cond
-    [(empty? lista) (display "\nTu no puedes, sigo yo")
-     (jugarIA)]
-    [(empty? (findLegalPos tab 'negra)) (display "Continua tu...\n")]
-    [(and (empty? lista) (empty? (findLegalPos tab 'negra))) (display "\nFin del juego.")]
-    [else ""])
-    )
-
-(define (jugar pos)
-  (cond
-    [(not (empty? (findLegalPos tab 'blanc)))
-    (let [(jugada (realizarJugada tab pos 'blanc))]
-      (cond
-        [(not (boolean? jugada))
-              (set! tab jugada)
-              (displayTablero tab)
-              (sleep 1)
-              (jugarIA)]
-        [else (display "Jugada erronea - Repita con otra de las posiciones indicadas")]))]
-    [else (display "movimiento no valido")])
-  (display "\n")
-  (display (findLegalPos tab 'blanc)))
-                   
-(display "posiciones validas")
-(findLegalPos tab 'blanc)
-
+;_______________________________________________________________________MAIN____________________________________________________________________________;;
+(display "Input: \n    0-AphaBeta\n    >1-Minimax\n")
+(let [(a (read-line (current-input-port) 'any))]
+  (elegirOpcion a))
+(display "\nque empiece el juego...\n")
+(define ventana (open-viewport "Othello" 500 500 ))
+((draw-solid-rectangle ventana)	 	 	 	 
+ (make-posn 0 450)	500 50 "white")
+((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
+(dibujarPosibles (findLegalPos tab 'blanc) 130)
+(displayTablero tab)
+(partida #f)
