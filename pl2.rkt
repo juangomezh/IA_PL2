@@ -14,10 +14,10 @@
   (list
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre  
-   'blanc 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
+   'LIBRE 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'blanc 'negra 'libre 'libre 'libre 
    'libre 'libre 'libre 'negra 'blanc 'libre 'libre 'libre  
-   'libre 'libre 'libre 'negra 'libre 'libre 'libre 'libre 
+   'libre 'libre 'libre 'LIBRE 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre 
    'libre 'libre 'libre 'libre 'libre 'libre 'libre 'libre))
 
@@ -296,7 +296,6 @@
              (set! tab jugadaCpu)]
             [else (display "No puedo seguir...")]))]
        [else (display "No puedo seguir...")])
-     (sleep 1)
      (displayTablero tab)
      (seguir (findLegalPos tab 'blanc))
      ]
@@ -335,9 +334,8 @@
               ((draw-solid-rectangle ventana)	 	 	 	 
                (make-posn 350 450)	150 50 "white")
               ((draw-string ventana) (make-posn 400 480) "MI TURNO" "black")
-              (sleep 1)
               (jugarIA)]
-        [else ((draw-string ventana) (make-posn 200 30) "Jugada erronea - Repita con otra de las posiciones indicadas" "black")]))]
+        [else ((draw-string ventana) (make-posn 180 30) "Jugada erronea - Repita con otra de las posiciones indicadas" "black")]))]
     [else ((draw-string ventana) (make-posn 200 30) "FIN DEL JUEGO " "black")])
   (display "\n")
   ((draw-solid-rectangle ventana)	 	 	 	 
