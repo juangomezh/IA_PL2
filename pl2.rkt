@@ -215,10 +215,11 @@
   (- (contarFichas tablero color) (contarFichas tablero (cambiarColor color))))
 
 (define (final? tablero color)
-  (and
+  (or
    (for/and ([i (in-range 0 64)])
     (not (equal? (list-ref tablero i) 'libre)))
-   (empty? (findLegalPos tablero color))))
+   (empty? (findLegalPos tablero color))
+   (empty? (findLegalPos tablero (cambiarColor color)))))
 
 
 (define (posibleJugador tablero color)
