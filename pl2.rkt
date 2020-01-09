@@ -1,4 +1,5 @@
 #lang Racket
+(provide (all-defined-out))
 (require 2htdp/universe)
 (require 2htdp/image)
 (require graphics/graphics)
