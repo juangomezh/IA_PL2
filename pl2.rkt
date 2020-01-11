@@ -25,7 +25,7 @@
 
 (define fila1 '(0 1 2 3 4 5 6 7))
 (define columna1 '(0 8 16 24 32 40 48 56))
-(define columna2 '(7 15 23 31 39 47 55 62))                   
+(define columna2 '(7 15 23 31 39 47 55 63))                   
 (define fila2 '(56 57 58 59 60 61 62 63))
 
 (define (imprimirTablero tablero)
@@ -107,21 +107,21 @@
       [else #f])]))
 
 (define (comprobarAlrededor tablero posiciones)
-  
+
   (for/or ([i posiciones]
            #:when (> i 0))
     (not (equal? (list-ref tablero i) 'libre))))
 
 (define (movimientoLegal tablero pos color)
   
-   (let* [(up  ((lambda (pos) (cond [(> pos 7)  (- pos 8)] [else -1])) pos))
-         (drup ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) up))
-         (dlup ((lambda (pos) (cond [(< pos 0) -1] [(< pos 63) (+ pos 1)] [else -1])) up))
-         (dw   ((lambda (pos) (cond [(< pos 56) (+ pos 8)] [else -1])) pos))
-         (drdw ((lambda (pos) (cond [(< pos 0) -1] [(> pos 0)  (- pos 1)] [else -1])) dw))
-         (dldw ((lambda (pos) (cond [(< pos 0) -1] [(< pos 63) (+ pos 1)] [else -1])) dw))
-         (rgt  ((lambda (pos) (cond [(> (remainder pos 8) 0)  (- pos 1)] [else -1])) pos))
-         (lft  ((lambda (pos) (cond [(< (remainder pos 8) 7) (+ pos 1)] [else -1])) pos))]
+   (let* [(up  ((lambda (pos) (cond [(boolean? (member pos fila1))  (- pos 8)] [else -1])) pos))
+         (dlup ((lambda (pos) (cond [(< pos 0) -1] [(and (boolean? (member pos columna1)) (> pos 0))  (- pos 1)] [else -1])) up))
+         (drup ((lambda (pos) (cond [(< pos 0) -1] [(and (boolean? (member pos columna2)) (> pos 0)) (+ pos 1)] [else -1])) up))
+         (dw   ((lambda (pos) (cond [(boolean? (member pos fila2)) (+ pos 8)] [else -1])) pos))
+         (dldw ((lambda (pos) (cond [(< pos 0) -1] [(and (boolean? (member pos columna1)) (< pos 63))  (- pos 1)] [else -1])) dw))
+         (drdw ((lambda (pos) (cond [(< pos 0) -1] [(and (boolean? (member pos columna2)) (< pos 63)) (+ pos 1)] [else -1])) dw))
+         (rgt  ((lambda (pos) (cond [(and (boolean? (member pos columna2)) (< pos 63))  (+ pos 1)] [else -1])) pos))
+         (lft  ((lambda (pos) (cond [(and (boolean? (member pos columna1)) (> pos 0)) (- pos 1)] [else -1])) pos))]
     (and
      (equal? (list-ref tablero pos) 'libre)
      (comprobarAlrededor (cambiarFicha tablero pos color) (list up drup dlup dw drdw dldw rgt lft))
@@ -186,6 +186,12 @@
   (cond
     [(equal? (list-ref tablero pos) 'blanc) "white"]
     [(equal? (list-ref tablero pos) 'negra) "black"]
+    [else "brown"]))
+
+(define (getColorFicha color)
+  (cond
+    [(equal? color 'blanc) "white"]
+    [(equal? color 'negra) "black"]
     [else "brown"]))
 
 (define (realizarJugada tablero pos color)
@@ -294,13 +300,13 @@
      (cond
        [(final? tab 'negra) (display "Fin del juego")]
        [(not (empty? (findLegalPos tab 'negra)))
-        (let [(jugadaCpu (realizarJugadaCpu tab (cdr (alphaB tab 'negra -inf.0 +inf.0 5)) 'negra))]
+        (let [(jugadaCpu (realizarJugadaCpu tab (cdr (alphaB tab 'negra -inf.0 +inf.0 4)) 'negra))]
           (cond
             [(not (boolean? jugadaCpu))
              (set! tab jugadaCpu)]
             [else (display "No puedo seguir...")]))]
        [else (display "No puedo seguir...")])
-     (sleep 0.75)
+     (sleep 1)
      (displayTablero tab)
      (seguir (findLegalPos tab 'blanc))
      ]
@@ -308,13 +314,13 @@
      (cond
        [(final? tab 'negra) (display "Fin del juego")]
        [(not (empty? (findLegalPos tab 'negra)))
-        (let [(jugadaCpu (realizarJugadaCpu tab (cdr (minimax tab 'negra 5)) 'negra))]
+        (let [(jugadaCpu (realizarJugadaCpu tab (cdr (minimax tab 'negra 4)) 'negra))]
           (cond
             [(not (boolean? jugadaCpu))
              (set! tab jugadaCpu)]
             [else (display "No puedo seguir...")]))]
        [else (display "No puedo seguir...")])
-     (sleep 0.75)
+     (sleep 1)
      (displayTablero tab)
      (seguir (findLegalPos tab 'blanc))]
     ))
@@ -325,30 +331,54 @@
     [(empty? (findLegalPos tab 'negra)) ((draw-string ventana) (make-posn 200 30) "Continua tu..." "black")]
     [(empty? lista) ((draw-string ventana) (make-posn 200 30) "Tu no puedes, sigo yo" "black")
                     (jugarIA)]
-    [else ""])
+    [else (display "")])
     )
+
+(define turno 'blanc)
 
 (define (jugar pos)
   (cond
-    [(not (empty? (findLegalPos tab 'blanc)))
-    (let [(jugada (realizarJugada tab pos 'blanc))]
-      (cond
-        [(not (boolean? jugada))
-              (set! tab jugada)
-              (displayTablero tab)
-              ((draw-solid-rectangle ventana)	 	 	 	 
-               (make-posn 350 450)	150 50 "white")
-              ((draw-string ventana) (make-posn 400 480) "MI TURNO" "black")
-              (jugarIA)]
-        [else ((draw-string ventana) (make-posn 180 30) "Jugada erronea - Repita con otra de las posiciones" "black")]))]
-    [else ((draw-string ventana) (make-posn 200 30) "FIN DEL JUEGO " "black")])
-  (display "\n")
-  ((draw-solid-rectangle ventana)	 	 	 	 
-   (make-posn 0 450)	500 50 "white")
-  
-  ((draw-string ventana) (make-posn 400 480) "TU TURNO " "black")
-  ((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
-  (dibujarPosibles (findLegalPos tab 'blanc) 150))
+    [(< (string->number opcion) 2)
+     (cond
+       [(not (empty? (findLegalPos tab 'blanc)))
+        (let [(jugada (realizarJugada tab pos 'blanc))]
+          (cond
+            [(not (boolean? jugada))
+             (set! tab jugada)
+             (displayTablero tab)
+             ((draw-solid-rectangle ventana)	 	 	 	 
+              (make-posn 350 450)	150 50 "white")
+             ((draw-string ventana) (make-posn 400 480) "MI TURNO" "black")
+             (jugarIA)]
+            [else ((draw-string ventana) (make-posn 180 30) "Jugada erronea - Repita con otra de las posiciones" "black")]))]
+       [else ((draw-string ventana) (make-posn 200 30) "FIN DEL JUEGO " "black")])
+     (display "\n")
+     ((draw-solid-rectangle ventana)	 	 	 	 
+      (make-posn 0 450)	500 50 "white")
+     ((draw-string ventana) (make-posn 400 480) "TU TURNO " "black")
+     ((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
+     (dibujarPosibles (findLegalPos tab 'blanc) 150)]
+    [else
+     
+     (cond
+       [(not (empty? (findLegalPos tab turno)))
+        (let [(jugada (realizarJugada tab pos turno))]
+          (cond
+            [(not (boolean? jugada))
+             (set! tab jugada)
+             (displayTablero tab)
+             ((draw-solid-rectangle ventana)	 	 	 	 
+              (make-posn 350 450)	150 50 "white")
+             (set! turno (cambiarColor turno))]
+            [else ((draw-string ventana) (make-posn 180 30) "Jugada erronea - Repita con otra de las posiciones" "black")]))
+        ((draw-solid-rectangle ventana)	 	 	 	 
+      (make-posn 0 450)	500 50 "white")
+     ((draw-string ventana) (make-posn 400 480) (getColorFicha turno) "black")
+     ((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
+     (dibujarPosibles (findLegalPos tab turno) 150)]
+       [else
+        (set! turno (cambiarColor turno))
+        ((draw-string ventana) (make-posn 180 30) "Continua el jugador blanco" "black")])]))
                    
 
 
@@ -713,6 +743,18 @@
        [(> (contarFichas tab 'blanc) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANASTE " "black")]
        [else ((draw-string ventana) (make-posn 350 30) "EMPATE " "black")])]))
 
+(define (partidaVs final)
+  (cond
+    [(not final)
+     (set! click_inicial (get-mouse-click ventana))
+     (draw click_inicial)
+     (partidaVs (final? tab turno))]
+    [else
+     (cond
+       [(< (contarFichas tab 'blanc) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANO NEGRO " "black")]
+       [(> (contarFichas tab 'blanc) (contarFichas tab 'negra)) ((draw-string ventana) (make-posn 350 30) "GANO BLANCO " "black")]
+       [else ((draw-string ventana) (make-posn 350 30) "EMPATE " "black")])]))
+  
 (define (dibujarPosibles lista posx)
   (cond
     [(empty? lista) (display "")]
@@ -788,7 +830,8 @@
 
 (check-match (realizarJugadaCpu tab 0 'blanc) empty)
 
-(check-match (findLegalPos tab 'blanc) '(20 29 34 43))
+(let ([pos '(20 29 34 43)])
+(check-match (findLegalPos tab 'blanc) pos))
 
 (check-eq? (final? tab 'blanc) #f)
 (let ([res (cons 0 -1)])
@@ -797,7 +840,7 @@
 (check-match (minimax tab 'blanc 0) (cons 0 -1))
 
 ;_______________________________________________________________________MAIN____________________________________________________________________________;;
-(display "Input: \n    0-AphaBeta\n    >1-Minimax\n")
+(display "Input: \n    0-AphaBeta\n    1-Minimax\n    >1-Modo Vs\n")
 (let [(a (read-line (current-input-port) 'any))]
   (elegirOpcion a))
 (display "\nque empiece el juego...\n")
@@ -805,6 +848,8 @@
 ((draw-solid-rectangle ventana)	 	 	 	 
  (make-posn 0 450)	500 50 "white")
 ((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
-(dibujarPosibles (findLegalPos tab 'blanc) 130)
+(dibujarPosibles (findLegalPos tab 'blanc) 148)
 (displayTablero tab)
-(partida #f)
+(cond
+  [(< (string->number opcion) 2) (partida #f)]
+  [else (partidaVs #f)])
