@@ -296,7 +296,7 @@
 
 (define (jugarIA)
   (cond
-    [(equal? opcion 0)
+    [(= (string->number opcion) 0)
      (cond
        [(final? tab 'negra) (display "Fin del juego")]
        [(not (empty? (findLegalPos tab 'negra)))
