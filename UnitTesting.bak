@@ -1,4 +1,0 @@
-#lang Racket
-(require "Sudoku.rkt"rackunit)
-
-(check-match (getFila 5 sudokuInicial) '(0 7 0  0 9 2  0 0 6))

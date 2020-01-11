@@ -756,4 +756,4 @@
 ((draw-string ventana) (make-posn 10 480) "posibles soluciones: " "black")
 (dibujarPosibles (findLegalPos tab 'blanc) 130)
 (displayTablero tab)
-(partida #f)
+;;(partida #f)
